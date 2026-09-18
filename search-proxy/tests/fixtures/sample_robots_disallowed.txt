@@ -1,0 +1,6 @@
+User-agent: LLMSearchBot
+Disallow: /restricted/
+Disallow: /private/
+
+User-agent: *
+Disallow: /admin/

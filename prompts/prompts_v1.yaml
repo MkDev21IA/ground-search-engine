@@ -1,0 +1,71 @@
+# Test prompt suite for the open grounded search and factual synthesis engine.
+# See README.md in this directory for format conventions and category descriptions.
+#
+# Focuses on factual sanity checks (trivial), multidisciplinary synthesis
+# (science, history, economics, technology, public policy), and niche queries (long-tail).
+
+- id: 1
+  category: trivial
+  prompt: "What is the speed of light in a vacuum?"
+  lang: en
+  notes: "Universal scientific consensus fact — pipeline sanity check."
+
+- id: 2
+  category: trivial
+  prompt: "In what year did World War II end?"
+  lang: en
+  notes: "Basic historical fact — sanity check."
+
+- id: 3
+  category: open-research
+  prompt: "Compare the main scientific evidence for and against the efficacy of creatine supplementation in older adults, citing sources on both sides."
+  lang: en
+  notes: "Requires synthesis of multiple clinical studies rather than a single answer — verifies that each claim cites its respective source."
+
+- id: 4
+  category: open-research
+  prompt: "Provide an overview of the state of commercial nuclear fusion research in 2026, including major ongoing projects and their stated target timelines."
+  lang: en
+  notes: "Requires aggregating diverse international projects, sensitive to current freshness."
+
+- id: 5
+  category: open-research
+  prompt: "What public housing policies were implemented in Brazil over the last decade, and what did independent evaluations conclude regarding their outcomes?"
+  lang: en
+  notes: "Requires distinguishing official government announcements from independent evaluation studies."
+
+- id: 6
+  category: open-research
+  prompt: "Explain Ethereum's Proof of Stake consensus mechanism and compare it to Proof of Work in terms of security and decentralization, based on technical analyses."
+  lang: en
+  notes: "Checks if primary technical documentation is cited, rather than generic introductory blog posts."
+
+- id: 7
+  category: open-research
+  prompt: "What are the primary historiographical theories explaining the fall of the Western Roman Empire, and what evidence supports each theory?"
+  lang: en
+  notes: "Topic with legitimate plurality of academic theories — verifies that multiple perspectives are presented with citations."
+
+- id: 8
+  category: open-research
+  prompt: "Provide a comparative summary of the economic impact of the COVID-19 pandemic on the GDP of Brazil, Argentina, and Chile, citing official statistics from each country."
+  lang: en
+  notes: "Multi-country comparison requiring distinct official statistical sources per country."
+
+- id: 18
+  category: long-tail
+  prompt: "What is the current conservation status of the black lion tamarin (Leontopithecus chrysopygus) according to recent assessments, and what active conservation programs are underway?"
+  lang: en
+  notes: "Niche ecological query — tests long-tail retrieval depth and ecological context."
+
+- id: 19
+  category: long-tail
+  prompt: "What do recent technical monitoring reports conclude regarding the water quality of the Doce River following the Mariana dam collapse?"
+  lang: en
+  notes: "Specific technical event requiring technical environmental monitoring data rather than generic news."
+
+- id: 20
+  category: long-tail
+  prompt: "What was the per capita electricity consumption in the state of Acre in 2025 according to official data, and how does it compare to the national average in Brazil?"
+  lang: en
+  notes: "Specific regional statistical metric with comparative benchmark — tests retrieval of official energy agency data (EPE/ANEEL)."

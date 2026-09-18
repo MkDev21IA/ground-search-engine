@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Secrets (API keys, credentials, etc.)
+.env
+searxng-config/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local private defense archive
+private-defense-archive/
