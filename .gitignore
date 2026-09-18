@@ -21,6 +21,3 @@ searxng-config/
 # OS
 .DS_Store
 Thumbs.db
-
-# Local private defense archive
-private-defense-archive/
