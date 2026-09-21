@@ -50,3 +50,10 @@ The benchmark will compare two execution modes across the test prompt suite ([`p
 - **Evidence-Based Engineering**: Prevents building unnecessary features before proving superior value.
 - **Compelling Positioning**: Delivers ready-to-publish evidence ("99.6% cheaper than Perplexity with zero temporal hallucinations") for public release.
 - **Architectural Readiness**: Integrates token and cost telemetry directly into the upcoming API design.
+
+## Revision (2026-09-21): A/B Benchmark Harness Implemented & OpenRouter Multi-Model Integration
+
+- The comparative A/B evaluation script has been implemented in [`search-proxy/scripts/run_head_to_head_eval.py`](../search-proxy/scripts/run_head_to_head_eval.py).
+- Integrated token usage tracking, detailed latency breakdowns (search, extraction, synthesis), and automatic USD cost calculation per model.
+- Added OpenRouter (`https://openrouter.ai/api/v1`) configuration support in `search-proxy/.env.example` to facilitate multi-model testing (OpenAI, Anthropic, DeepSeek, Meta Llama) under a single budget-friendly unified API key.
+
