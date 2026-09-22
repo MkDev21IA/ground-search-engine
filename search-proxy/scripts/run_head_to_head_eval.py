@@ -117,7 +117,8 @@ def run_benchmark(
             raw_completion_tokens = raw_usage.get("completion_tokens", 0)
             raw_total_tokens = raw_usage.get("total_tokens", 0)
             raw_citations = extract_citations(raw_answer)
-            raw_cost = estimate_cost(llm_config.model, raw_prompt_tokens, raw_completion_tokens)
+            raw_cost = float(raw_usage.get("cost") or estimate_cost(llm_config.model, raw_prompt_tokens, raw_completion_tokens))
+            raw_cost = round(raw_cost, 6)
 
             mode_a_record = {
                 "status": "success",
@@ -182,7 +183,8 @@ def run_benchmark(
             b_prompt_tokens = synthesis_output.raw_usage.get("prompt_tokens", 0)
             b_completion_tokens = synthesis_output.raw_usage.get("completion_tokens", 0)
             b_total_tokens = synthesis_output.raw_usage.get("total_tokens", 0)
-            b_cost = estimate_cost(llm_config.model, b_prompt_tokens, b_completion_tokens)
+            b_cost = float(synthesis_output.raw_usage.get("cost") or estimate_cost(llm_config.model, b_prompt_tokens, b_completion_tokens))
+            b_cost = round(b_cost, 6)
 
             full_texts_count = sum(1 for s in synthesis_output.sources_used if s.source_tier == "full_text")
             snippets_count = sum(1 for s in synthesis_output.sources_used if s.source_tier == "snippet")
