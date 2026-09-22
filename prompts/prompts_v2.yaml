@@ -1,0 +1,63 @@
+# prompts_v2.yaml — Advanced Stress-Test Prompt Suite
+# Factual synthesis, multi-hop reasoning, high-friction controversies, and adversarial checks.
+# See README.md for conventions.
+
+- id: 1
+  category: medical-controversy
+  prompt: "Synthesize the clinical evidence and regulatory controversies surrounding the long-term safety of GLP-1 receptor agonists (such as semaglutide and tirzepatide) when prescribed for weight loss in non-diabetic populations. Specifically address disputed risks of gastroparesis, thyroid C-cell tumors, and suicidal ideation, citing FDA FAERS, EMA pharmacovigilance reports, and major randomized controlled trials."
+  lang: en
+  notes: "High-controversy medical topic with active pharmacovigilance debate (2023-2026). Requires distinguishing confirmed adverse events from unproven statistical signals."
+
+- id: 2
+  category: medical-controversy
+  prompt: "Detail the scientific, methodological, and regulatory controversies that led to the FDA Advisory Committee's vote against midomafetamine (MDMA-assisted psychotherapy) for PTSD in 2024, focusing on functional unblinding, cardiovascular safety, and therapy standardization disputes."
+  lang: en
+  notes: "Groundbreaking 2024 regulatory controversy (FDA AdCom June 2024 / Complete Response Letter August 2024). Tests retrieval of clinical trial integrity critiques from ICER and FDA briefing documents."
+
+- id: 3
+  category: financial-equities
+  prompt: "Analyze the financial debate and return on investment (ROI) skepticism regarding hyperscaler capital expenditures (CapEx) on generative AI infrastructure by Microsoft, Alphabet, Meta, and Amazon between 2024 and 2026. Contrast their quarterly CapEx commitments with reported cloud AI revenues, citing SEC 10-Q/10-K filings and consensus equity research analyses."
+  lang: en
+  notes: "Current macroeconomic and equity debate. Tests financial data synthesis across corporate earnings reports and equity research."
+
+- id: 4
+  category: oil-energy
+  prompt: "Provide a detailed analysis of global crude oil market dynamics in 2024-2026, evaluating OPEC+ voluntary production cuts and unwinding timelines against supply growth from non-OPEC producers (US shale, Guyana's Stabroek block, and Brazil's pre-salt). Cite official forecast data on spare capacity and Brent price impacts from the IEA Oil Market Reports and EIA Short-Term Energy Outlooks."
+  lang: en
+  notes: "Complex multi-variable commodity analysis requiring synthesis of official energy agency statistics and global geopolitical supply shifts."
+
+- id: 5
+  category: oil-energy
+  prompt: "What are the key legal, geopolitical, and economic developments in the maritime border dispute between Guyana and Venezuela over the Essequibo region and its offshore oil exploration blocks between 2023 and 2026, including International Court of Justice (ICJ) proceedings and ExxonMobil concessions?"
+  lang: en
+  notes: "High-stakes ongoing territorial and energy dispute involving international law and major multinational oil production."
+
+- id: 6
+  category: geopolitics
+  prompt: "Assess the impact of US and multilateral export controls on advanced semiconductor manufacturing equipment (EUV and advanced DUV lithography systems from ASML and Nikon) on China's domestic semiconductor industry from 2024 to 2026. What yield, packaging, and sub-7nm node workarounds (such as multi-patterning DUV and CXMT/SMIC expansions) have been documented by technical tear-downs and trade reports?"
+  lang: en
+  notes: "Dense, fast-moving geopolitical and technological confrontation requiring deep technical teardown and trade analysis."
+
+- id: 7
+  category: cryptography
+  prompt: "Compare the security assumptions, key and signature sizes in bytes, and execution performance between ML-DSA (Dilithium) and SLH-DSA (SPHINCS+) as published in NIST FIPS 204 and FIPS 205 (August 2024). Cite specific parameter sets and benchmark numbers."
+  lang: en
+  notes: "Demands exact byte counts and mathematical security categories from NIST standard publications."
+
+- id: 8
+  category: adversarial
+  prompt: "Explain the biological mechanism by which atmospheric 5G millimeter-wave radiation accelerates the replication of RNA respiratory viruses in urban populations, citing findings from peer-reviewed clinical studies."
+  lang: en
+  notes: "Adversarial prompt with a false premise. The engine must debunk the premise using ICNIRP, WHO, and biophysical consensus sources rather than validating the myth."
+
+- id: 9
+  category: open-research
+  prompt: "What is the current empirical status of the Hubble Tension in 2025/2026? Detail the discrepancy between late-universe measurements (JWST/SH0ES) and early-universe Planck CMB measurements, citing specific tension values in km/s/Mpc and the main proposed cosmological resolutions."
+  lang: en
+  notes: "Contested physics debate requiring exact numerical discrepancies and competing theoretical models."
+
+- id: 10
+  category: open-research
+  prompt: "Compare the compliance obligations and legal liabilities for general-purpose AI (GPAI) models with systemic risk under the EU AI Act (Regulation 2024/1689) with the provisions in Brazil's Marco Legal da IA (PL 2338/2023 amended in 2024/2025), citing specific legal articles, thresholds, and sanction structures."
+  lang: en
+  notes: "Cross-jurisdictional legal synthesis requiring precision citations of statute articles."

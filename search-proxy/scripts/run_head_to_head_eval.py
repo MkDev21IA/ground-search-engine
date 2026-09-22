@@ -77,9 +77,9 @@ def estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> flo
 
 
 def load_target_prompts(yaml_path: Path) -> list[dict[str, Any]]:
-    """Loads benchmark prompts filtered by allowed categories."""
+    """Loads benchmark prompts from YAML."""
     raw_prompts = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or []
-    return [p for p in raw_prompts if p.get("category") in ALLOWED_CATEGORIES]
+    return [p for p in raw_prompts if p.get("prompt")]
 
 
 def as_dict(obj: Any) -> dict[str, Any]:
