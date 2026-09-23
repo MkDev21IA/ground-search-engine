@@ -27,3 +27,4 @@ Use `template.md` as the baseline for new decisions.
 | [0011](0011-pipeline-validation-with-commercial-model.md) | Pipeline Validation with Commercial Model Before Downscaling | Accepted (synthesis bridge and OpenAI-compatible client revised 2026-09-17) |
 | [0012](0012-head-to-head-evaluation-and-cost-benchmark.md) | Head-to-Head Evaluation and Cost-Effectiveness Benchmark | Accepted (Week of Sep 21–25, 2026) |
 | [0013](0013-differentiation-vs-google-ai-overviews-and-search-grounding.md) | Architectural Differentiation vs. Google AI Overviews and Search Grounding | Accepted |
+| [0014](0014-backend-service-architecture-and-telemetry.md) | Backend Service Architecture, Streaming API, and Real-Time Telemetry | Accepted |

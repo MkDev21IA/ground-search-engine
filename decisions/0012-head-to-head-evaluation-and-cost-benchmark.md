@@ -57,3 +57,29 @@ The benchmark will compare two execution modes across the test prompt suite ([`p
 - Integrated token usage tracking, detailed latency breakdowns (search, extraction, synthesis), and automatic USD cost calculation per model.
 - Added OpenRouter (`https://openrouter.ai/api/v1`) configuration support in `search-proxy/.env.example` to facilitate multi-model testing (OpenAI, Anthropic, DeepSeek, Meta Llama) under a single budget-friendly unified API key.
 
+## Revision (2026-09-23): Factual Audit, Empirical Benchmark Results, and Formal GO Product Verdict
+
+On September 22, 2026, three comprehensive benchmark campaigns were executed via OpenRouter, encompassing 216 individual LLM evaluations across 21 test queries in `prompts/prompts_v1.yaml` and `prompts/prompts_v2.yaml`.
+
+### 1. Empirical Findings Summary
+
+1. **Multi-Model Universality ([`results/2026-09-22-head-to-head-evaluation/`](../results/2026-09-22-head-to-head-evaluation/))**:
+   - Evaluated 6 major foundation models (GPT-4o-mini, Gemini-2.5-Flash, DeepSeek-Chat, Llama-3.3-70B, Qwen-2.5-72B, Claude-3-Haiku) across 11 baseline prompts (132 evaluations).
+   - Proved that the synthesis prompt in [`synthesis/prompts.py`](../search-proxy/search_proxy/synthesis/prompts.py) generalizes reliably across all model families, producing an average of 2.5 to 4.8 verified inline citations with zero prompt formatting failures.
+2. **David vs. Goliath Hypothesis Validation ([`results/2026-09-22-david-vs-goliath-evaluation/`](../results/2026-09-22-david-vs-goliath-evaluation/))**:
+   - Compared lightweight open-weight models inside the pipeline (`meta-llama/llama-3.2-3b-instruct` and `qwen/qwen-2.5-7b-instruct`) against top-tier proprietary frontier models in raw chat (`openai/gpt-4o` and `anthropic/claude-3.5-sonnet`).
+   - **Temporal Accuracy**: On post-cutoff queries (2026 nuclear fusion milestones, Acre 2025 electricity consumption), 100% of raw frontier models failed or refused to answer, whereas 3B/7B models with the pipeline answered with 100% factual accuracy and primary source URLs.
+   - **Cost Superiority**: Llama-3.2-3B in the pipeline costs **$0.00092 per query ($0.92 per 1,000 searches)**, making it **4.3x cheaper than GPT-4o raw** ($4.03/1k) and **8.2x cheaper than Claude-3.5-Sonnet raw** ($7.60/1k), while processing nearly 15,000 tokens of live web context.
+3. **Advanced Stress Test Resilience ([`results/2026-09-22-stress-test-evaluation/`](../results/2026-09-22-stress-test-evaluation/))**:
+   - Evaluated 10 high-friction prompts across contentious medical pharmacovigilance (GLP-1 long-term safety, 2024 FDA MDMA AdCom rejection), Big Tech generative AI CapEx vs ROI, OPEC+ vs non-OPEC oil supply, Essequibo geopolitical dispute, ASML chip sanctions, post-quantum cryptography (NIST FIPS 204/205), and an adversarial false-premise trap (5G and viral replication).
+   - `qwen/qwen-2.5-7b-instruct` achieved **3.1 verifiable primary citations per response**, successfully cited official SEC EDGAR 10-K/10-Q filings, official IEA/EIA energy reports, and FDA briefing documents, and correctly debunked the 5G false premise by citing scientific consensus and retracted literature.
+
+### 2. Formal Go/No-Go Product Verdict: DEFINITIVE "GO"
+
+The product hypothesis formulated in this ADR is fully verified. Grounding search with self-hosted SearXNG and local extraction is demonstrably superior in factual verifiability, temporal freshness, and cost-efficiency compared to raw commercial chat.
+
+**Engineering authorization granted** to proceed to the next milestones:
+- **Thursday (24/09)**: FastAPI core backend service (`/api/search`) with Server-Sent Events (SSE) streaming and real-time token/cost telemetry.
+- **Friday (25/09)**: Showcase Web UI with source cards and Bring-Your-Own-Key (BYOK) support.
+
+
