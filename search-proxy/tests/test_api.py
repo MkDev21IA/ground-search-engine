@@ -212,3 +212,17 @@ def test_byok_headers_override(client: TestClient) -> None:
         assert cfg.base_url == "http://localhost:11434/v1"
         assert cfg.model == "ollama/custom-model"
 
+
+def test_ui_root_serves_html(client: TestClient) -> None:
+    res = client.get("/")
+    assert res.status_code == 200
+    assert "text/html" in res.headers["content-type"]
+    assert "Ground Search" in res.text
+
+
+def test_ui_static_asset_serves_js(client: TestClient) -> None:
+    res = client.get("/static/app.js")
+    assert res.status_code == 200
+    assert "Ground Search Engine" in res.text
+
+

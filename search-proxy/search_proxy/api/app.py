@@ -3,7 +3,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from .routes import router
 
@@ -40,9 +41,17 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
 
-    @app.get("/", include_in_schema=False)
-    def root():
-        return RedirectResponse(url="/docs")
+    ui_dir = Path(__file__).resolve().parent.parent / "ui"
+    if ui_dir.exists() and (ui_dir / "index.html").exists():
+        app.mount("/static", StaticFiles(directory=ui_dir), name="static")
+
+        @app.get("/", include_in_schema=False)
+        def root():
+            return FileResponse(ui_dir / "index.html")
+    else:
+        @app.get("/", include_in_schema=False)
+        def root():
+            return RedirectResponse(url="/docs")
 
     return app
 
