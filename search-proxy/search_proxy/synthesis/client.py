@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 import os
 import re
-from typing import Any
+from typing import Any, Iterator
 import httpx
 
 from .models import Citation
@@ -94,6 +95,60 @@ class LLMClient:
         answer = choices[0].get("message", {}).get("content", "")
         usage = data.get("usage", {})
         return answer, usage
+
+    def stream_generate(
+        self, messages: list[dict[str, str]]
+    ) -> Iterator[dict[str, Any]]:
+        """Sends chat messages with stream=True and yields token chunks and usage.
+
+        Yields dicts with:
+        - {"type": "token", "content": delta_text}
+        - {"type": "usage", "usage": usage_dict}
+        """
+        client = self._get_client()
+        url = f"{self.config.base_url.rstrip('/')}/chat/completions"
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
+
+        payload: dict[str, Any] = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+            "stream": True,
+            "stream_options": {"include_usage": True},
+        }
+
+        with client.stream("POST", url, headers=headers, json=payload) as response:
+            if response.status_code >= 400:
+                body = response.read().decode("utf-8", errors="replace")
+                raise RuntimeError(
+                    f"LLM API request failed [{response.status_code}] on {url}: {body}"
+                )
+
+            for line in response.iter_lines():
+                if not line or not line.startswith("data: "):
+                    continue
+                data_str = line[len("data: "):].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(data_str)
+                except Exception:
+                    continue
+
+                if "usage" in chunk and chunk["usage"]:
+                    yield {"type": "usage", "usage": chunk["usage"]}
+
+                choices = chunk.get("choices", [])
+                if choices:
+                    delta = choices[0].get("delta", {})
+                    token = delta.get("content", "")
+                    if token:
+                        yield {"type": "token", "content": token}
 
     def close(self) -> None:
         if self._owns_client and self._http_client is not None:
