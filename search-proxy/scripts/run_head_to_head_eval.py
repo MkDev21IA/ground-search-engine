@@ -97,7 +97,7 @@ def as_dict(obj: Any) -> dict[str, Any]:
 def execute_mode_a_single(model_name: str, prompt_text: str) -> tuple[str, dict[str, Any]]:
     """Executes Mode A (Raw Chat) for a single model."""
     actual_model = MODEL_ALIASES.get(model_name, model_name)
-    client = LLMClient(config=LLMConfig(model=actual_model))
+    client = LLMClient(config=LLMConfig(model=actual_model, timeout=45.0))
     t_start = time.time()
     raw_messages = [
         {
@@ -151,7 +151,7 @@ def execute_mode_b_single(
 ) -> tuple[str, dict[str, Any]]:
     """Executes Mode B (Grounded Pipeline) for a single model."""
     actual_model = MODEL_ALIASES.get(model_name, model_name)
-    client = LLMClient(config=LLMConfig(model=actual_model))
+    client = LLMClient(config=LLMConfig(model=actual_model, timeout=45.0))
     synthesis_svc = SynthesisService(llm_client=client)
     t_start = time.time()
     try:
@@ -275,10 +275,22 @@ def run_multi_model_benchmark(
             print(f"  -> Step 3: Running Mode A (Raw Chat) across {len(raw_models)} models in parallel...", end="", flush=True)
             t_raw_group = time.time()
             with ThreadPoolExecutor(max_workers=len(raw_models)) as executor:
-                futures = [executor.submit(execute_mode_a_single, m, prompt_text) for m in raw_models]
-                for fut in as_completed(futures):
-                    m_name, m_res = fut.result()
-                    mode_a_results[m_name] = m_res
+                future_to_model_a = {executor.submit(execute_mode_a_single, m, prompt_text): m for m in raw_models}
+                for fut in as_completed(future_to_model_a):
+                    m_name = future_to_model_a[fut]
+                    try:
+                        _, m_res = fut.result(timeout=45.0)
+                        mode_a_results[m_name] = m_res
+                    except Exception as exc:
+                        mode_a_results[m_name] = {
+                            "status": "failed",
+                            "error": f"Execution timeout or error: {exc}",
+                            "latency_seconds": 45.0,
+                            "tokens": {"prompt": 0, "completion": 0, "total": 0},
+                            "cost_usd": 0.0,
+                            "citations_count": 0,
+                            "citations": [],
+                        }
             t_raw_tot = round(time.time() - t_raw_group, 2)
             print(f" Done ({t_raw_tot}s)")
 
@@ -290,7 +302,7 @@ def run_multi_model_benchmark(
             print(f"  -> Step 4: Running Mode B (Grounded Pipeline) across {len(pipeline_models)} models in parallel...", end="", flush=True)
             t_syn_group = time.time()
             with ThreadPoolExecutor(max_workers=len(pipeline_models)) as executor:
-                futures = [
+                future_to_model_b = {
                     executor.submit(
                         execute_mode_b_single,
                         m,
@@ -299,12 +311,24 @@ def run_multi_model_benchmark(
                         extracted_docs,
                         search_duration,
                         extract_duration,
-                    )
+                    ): m
                     for m in pipeline_models
-                ]
-                for fut in as_completed(futures):
-                    m_name, m_res = fut.result()
-                    mode_b_results[m_name] = m_res
+                }
+                for fut in as_completed(future_to_model_b):
+                    m_name = future_to_model_b[fut]
+                    try:
+                        _, m_res = fut.result(timeout=60.0)
+                        mode_b_results[m_name] = m_res
+                    except Exception as exc:
+                        mode_b_results[m_name] = {
+                            "status": "failed",
+                            "error": f"Execution timeout or error: {exc}",
+                            "latencies": {"total_seconds": round(search_duration + extract_duration + 60.0, 2)},
+                            "tokens": {"prompt": 0, "completion": 0, "total": 0},
+                            "cost_usd": 0.0,
+                            "citations_count": 0,
+                            "citations": [],
+                        }
             t_syn_tot = round(time.time() - t_syn_group, 2)
             print(f" Done ({t_syn_tot}s)")
 
