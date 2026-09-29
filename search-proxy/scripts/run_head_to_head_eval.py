@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 import json
 from pathlib import Path
@@ -53,7 +54,9 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
     "deepseek-chat": {"input_per_m": 0.14, "output_per_m": 0.28},
     "llama-3.3-70b": {"input_per_m": 0.12, "output_per_m": 0.30},
     "llama-3.2-3b": {"input_per_m": 0.05, "output_per_m": 0.33},
+    "llama-3.2-1b": {"input_per_m": 0.04, "output_per_m": 0.10},
     "llama-3.1-8b": {"input_per_m": 0.05, "output_per_m": 0.08},
+    "qwen-2.5-3b": {"input_per_m": 0.07, "output_per_m": 0.14},
     "qwen-2.5-7b": {"input_per_m": 0.10, "output_per_m": 0.20},
     "qwen-2.5-72b": {"input_per_m": 0.35, "output_per_m": 0.40},
 }
@@ -76,9 +79,12 @@ def estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> flo
     return round(input_cost + output_cost, 6)
 
 
-def load_target_prompts(yaml_path: Path) -> list[dict[str, Any]]:
-    """Loads benchmark prompts from YAML."""
-    raw_prompts = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or []
+def load_target_prompts(file_path: Path) -> list[dict[str, Any]]:
+    """Loads benchmark prompts from YAML or JSON."""
+    if file_path.suffix.lower() == ".json":
+        raw_prompts = json.loads(file_path.read_text(encoding="utf-8")) or []
+    else:
+        raw_prompts = yaml.safe_load(file_path.read_text(encoding="utf-8")) or []
     return [p for p in raw_prompts if p.get("prompt")]
 
 
@@ -86,6 +92,108 @@ def as_dict(obj: Any) -> dict[str, Any]:
     if hasattr(obj, "__dict__"):
         return obj.__dict__
     return dict(obj)
+
+
+def execute_mode_a_single(model_name: str, prompt_text: str) -> tuple[str, dict[str, Any]]:
+    """Executes Mode A (Raw Chat) for a single model."""
+    actual_model = MODEL_ALIASES.get(model_name, model_name)
+    client = LLMClient(config=LLMConfig(model=actual_model))
+    t_start = time.time()
+    raw_messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an advanced, objective research assistant. "
+                "Answer the user query thoroughly and factually based on your knowledge. "
+                "Maintain a neutral, analytical tone. If you are unsure of any facts, state so."
+            ),
+        },
+        {"role": "user", "content": prompt_text},
+    ]
+    try:
+        raw_ans, raw_usage = client.generate(raw_messages)
+        lat = round(time.time() - t_start, 2)
+        p_tok = raw_usage.get("prompt_tokens", 0)
+        c_tok = raw_usage.get("completion_tokens", 0)
+        t_tok = raw_usage.get("total_tokens", 0)
+        cits = extract_citations(raw_ans)
+        cost = float(raw_usage.get("cost") or estimate_cost(actual_model, p_tok, c_tok))
+        return model_name, {
+            "status": "success",
+            "model_actual": actual_model,
+            "answer": raw_ans,
+            "latency_seconds": lat,
+            "tokens": {"prompt": p_tok, "completion": c_tok, "total": t_tok},
+            "cost_usd": round(cost, 6),
+            "citations_count": len(cits),
+            "citations": [as_dict(c) for c in cits],
+        }
+    except Exception as exc:
+        lat = round(time.time() - t_start, 2)
+        return model_name, {
+            "status": "failed",
+            "error": str(exc),
+            "latency_seconds": lat,
+            "tokens": {"prompt": 0, "completion": 0, "total": 0},
+            "cost_usd": 0.0,
+            "citations_count": 0,
+            "citations": [],
+        }
+
+
+def execute_mode_b_single(
+    model_name: str,
+    prompt_text: str,
+    search_results: list[Result],
+    extracted_docs: list[ExtractedDocument],
+    search_duration: float,
+    extract_duration: float,
+) -> tuple[str, dict[str, Any]]:
+    """Executes Mode B (Grounded Pipeline) for a single model."""
+    actual_model = MODEL_ALIASES.get(model_name, model_name)
+    client = LLMClient(config=LLMConfig(model=actual_model))
+    synthesis_svc = SynthesisService(llm_client=client)
+    t_start = time.time()
+    try:
+        synthesis_out = synthesis_svc.synthesize(
+            query=prompt_text,
+            results=search_results,
+            extracted_docs=extracted_docs,
+        )
+        syn_lat = round(time.time() - t_start, 2)
+        tot_pipeline_lat = round(search_duration + extract_duration + syn_lat, 2)
+        bp_tok = synthesis_out.raw_usage.get("prompt_tokens", 0)
+        bc_tok = synthesis_out.raw_usage.get("completion_tokens", 0)
+        bt_tok = synthesis_out.raw_usage.get("total_tokens", 0)
+        b_cits = synthesis_out.citations
+        b_cost = float(synthesis_out.raw_usage.get("cost") or estimate_cost(actual_model, bp_tok, bc_tok))
+        return model_name, {
+            "status": "success",
+            "model_actual": actual_model,
+            "answer": synthesis_out.answer,
+            "latencies": {
+                "search_seconds": search_duration,
+                "extract_seconds": extract_duration,
+                "synthesis_seconds": syn_lat,
+                "total_seconds": tot_pipeline_lat,
+            },
+            "tokens": {"prompt": bp_tok, "completion": bc_tok, "total": bt_tok},
+            "cost_usd": round(b_cost, 6),
+            "citations_count": len(b_cits),
+            "citations": [as_dict(c) for c in b_cits],
+            "sources_used_count": len(synthesis_out.sources_used),
+        }
+    except Exception as exc:
+        syn_lat = round(time.time() - t_start, 2)
+        return model_name, {
+            "status": "failed",
+            "error": str(exc),
+            "latencies": {"total_seconds": round(search_duration + extract_duration + syn_lat, 2)},
+            "tokens": {"prompt": 0, "completion": 0, "total": 0},
+            "cost_usd": 0.0,
+            "citations_count": 0,
+            "citations": [],
+        }
 
 
 def run_multi_model_benchmark(
@@ -100,7 +208,7 @@ def run_multi_model_benchmark(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     adapter = SearxngAdapter()
-    extractor = ContentExtractor(timeout=10.0)
+    extractor = ContentExtractor(timeout=5.0)
     base_config = LLMConfig()
 
     print("=" * 75)
@@ -111,11 +219,29 @@ def run_multi_model_benchmark(
     print(f"Prompts: {len(prompts)} | Output dir: {out_dir}")
     print("=" * 75)
 
+    json_path = out_dir / json_filename
+    report_path = out_dir / report_filename
+
     all_prompt_records: list[dict[str, Any]] = []
+    processed_ids: set[Any] = set()
+
+    if json_path.exists():
+        try:
+            existing = json.loads(json_path.read_text(encoding="utf-8"))
+            if isinstance(existing, list):
+                all_prompt_records = existing
+                processed_ids = {r.get("prompt_id") for r in existing if "prompt_id" in r}
+                print(f"[RESUME] Found existing checkpoint with {len(processed_ids)} completed prompts. Resuming...")
+        except Exception as e:
+            print(f"[WARN] Failed to load existing checkpoint: {e}")
+
     total_prompts = len(prompts)
 
     for p_idx, item in enumerate(prompts, start=1):
         prompt_id = item["id"]
+        if prompt_id in processed_ids:
+            continue
+
         category = item.get("category", "")
         prompt_text = item["prompt"]
         lang = item.get("lang", "en")
@@ -135,126 +261,52 @@ def run_multi_model_benchmark(
 
         print("  -> Step 2: Extracting HTML & PDF contents...", end="", flush=True)
         t_extract_start = time.time()
-        urls_to_extract = [r.url for r in search_results if r.url and not r.url.startswith("error:")]
+        urls_to_extract = [r.url for r in search_results if r.url and not r.url.startswith("error:")][:6]
         extracted_docs = extractor.extract_many(urls_to_extract)
         extract_duration = round(time.time() - t_extract_start, 2)
         full_text_docs = sum(1 for d in extracted_docs if d.status == "ok" and d.text)
         print(f" Extracted {full_text_docs}/{len(extracted_docs)} full texts ({extract_duration}s)")
 
         # -----------------------------------------------------------------
-        # STEP 2: MODE A (Raw Chat) for raw_models
+        # STEP 3: MODE A (Raw Chat) for raw_models (Parallel Execution)
         # -----------------------------------------------------------------
         mode_a_results: dict[str, Any] = {}
-        for m_idx, model_name in enumerate(raw_models, start=1):
-            actual_model = MODEL_ALIASES.get(model_name, model_name)
-            print(f"    [Mode A {m_idx}/{len(raw_models)}] Raw Chat: {model_name}")
-            client = LLMClient(config=LLMConfig(model=actual_model))
-
-            t_raw_start = time.time()
-            raw_messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an advanced, objective research assistant. "
-                        "Answer the user query thoroughly and factually based on your knowledge. "
-                        "Maintain a neutral, analytical tone. If you are unsure of any facts, state so."
-                    ),
-                },
-                {"role": "user", "content": prompt_text},
-            ]
-
-            try:
-                raw_ans, raw_usage = client.generate(raw_messages)
-                raw_lat = round(time.time() - t_raw_start, 2)
-                p_tok = raw_usage.get("prompt_tokens", 0)
-                c_tok = raw_usage.get("completion_tokens", 0)
-                t_tok = raw_usage.get("total_tokens", 0)
-                cits = extract_citations(raw_ans)
-                cost = float(raw_usage.get("cost") or estimate_cost(actual_model, p_tok, c_tok))
-
-                mode_a_results[model_name] = {
-                    "status": "success",
-                    "model_actual": actual_model,
-                    "answer": raw_ans,
-                    "latency_seconds": raw_lat,
-                    "tokens": {"prompt": p_tok, "completion": c_tok, "total": t_tok},
-                    "cost_usd": round(cost, 6),
-                    "citations_count": len(cits),
-                    "citations": [as_dict(c) for c in cits],
-                }
-                print(f"       Done ({raw_lat}s | {t_tok} tok | ${cost:.5f} | {len(cits)} cits)")
-            except Exception as exc:
-                raw_lat = round(time.time() - t_raw_start, 2)
-                print(f"       FAILED ({exc})")
-                mode_a_results[model_name] = {
-                    "status": "failed",
-                    "error": str(exc),
-                    "latency_seconds": raw_lat,
-                    "tokens": {"prompt": 0, "completion": 0, "total": 0},
-                    "cost_usd": 0.0,
-                    "citations_count": 0,
-                    "citations": [],
-                }
-
-            time.sleep(0.5)
+        if raw_models:
+            print(f"  -> Step 3: Running Mode A (Raw Chat) across {len(raw_models)} models in parallel...", end="", flush=True)
+            t_raw_group = time.time()
+            with ThreadPoolExecutor(max_workers=len(raw_models)) as executor:
+                futures = [executor.submit(execute_mode_a_single, m, prompt_text) for m in raw_models]
+                for fut in as_completed(futures):
+                    m_name, m_res = fut.result()
+                    mode_a_results[m_name] = m_res
+            t_raw_tot = round(time.time() - t_raw_group, 2)
+            print(f" Done ({t_raw_tot}s)")
 
         # -----------------------------------------------------------------
-        # STEP 3: MODE B (Grounded Pipeline) for pipeline_models
+        # STEP 4: MODE B (Grounded Pipeline) for pipeline_models (Parallel Execution)
         # -----------------------------------------------------------------
         mode_b_results: dict[str, Any] = {}
-        for m_idx, model_name in enumerate(pipeline_models, start=1):
-            actual_model = MODEL_ALIASES.get(model_name, model_name)
-            print(f"    [Mode B {m_idx}/{len(pipeline_models)}] Grounded Pipeline: {model_name}")
-            client = LLMClient(config=LLMConfig(model=actual_model))
-            synthesis_svc = SynthesisService(llm_client=client)
-
-            t_syn_start = time.time()
-            try:
-                synthesis_out = synthesis_svc.synthesize(
-                    query=prompt_text,
-                    results=search_results,
-                    extracted_docs=extracted_docs,
-                )
-                syn_lat = round(time.time() - t_syn_start, 2)
-                tot_pipeline_lat = round(search_duration + extract_duration + syn_lat, 2)
-
-                bp_tok = synthesis_out.raw_usage.get("prompt_tokens", 0)
-                bc_tok = synthesis_out.raw_usage.get("completion_tokens", 0)
-                bt_tok = synthesis_out.raw_usage.get("total_tokens", 0)
-                b_cits = synthesis_out.citations
-                b_cost = float(synthesis_out.raw_usage.get("cost") or estimate_cost(actual_model, bp_tok, bc_tok))
-
-                mode_b_results[model_name] = {
-                    "status": "success",
-                    "model_actual": actual_model,
-                    "answer": synthesis_out.answer,
-                    "latencies": {
-                        "search_seconds": search_duration,
-                        "extract_seconds": extract_duration,
-                        "synthesis_seconds": syn_lat,
-                        "total_seconds": tot_pipeline_lat,
-                    },
-                    "tokens": {"prompt": bp_tok, "completion": bc_tok, "total": bt_tok},
-                    "cost_usd": round(b_cost, 6),
-                    "citations_count": len(b_cits),
-                    "citations": [as_dict(c) for c in b_cits],
-                    "sources_used_count": len(synthesis_out.sources_used),
-                }
-                print(f"       Done ({syn_lat}s syn / {tot_pipeline_lat}s tot | {bt_tok} tok | ${b_cost:.5f} | {len(b_cits)} cits)")
-            except Exception as exc:
-                syn_lat = round(time.time() - t_syn_start, 2)
-                print(f"       FAILED ({exc})")
-                mode_b_results[model_name] = {
-                    "status": "failed",
-                    "error": str(exc),
-                    "latencies": {"total_seconds": round(search_duration + extract_duration + syn_lat, 2)},
-                    "tokens": {"prompt": 0, "completion": 0, "total": 0},
-                    "cost_usd": 0.0,
-                    "citations_count": 0,
-                    "citations": [],
-                }
-
-            time.sleep(0.5)
+        if pipeline_models:
+            print(f"  -> Step 4: Running Mode B (Grounded Pipeline) across {len(pipeline_models)} models in parallel...", end="", flush=True)
+            t_syn_group = time.time()
+            with ThreadPoolExecutor(max_workers=len(pipeline_models)) as executor:
+                futures = [
+                    executor.submit(
+                        execute_mode_b_single,
+                        m,
+                        prompt_text,
+                        search_results,
+                        extracted_docs,
+                        search_duration,
+                        extract_duration,
+                    )
+                    for m in pipeline_models
+                ]
+                for fut in as_completed(futures):
+                    m_name, m_res = fut.result()
+                    mode_b_results[m_name] = m_res
+            t_syn_tot = round(time.time() - t_syn_group, 2)
+            print(f" Done ({t_syn_tot}s)")
 
         # Backwards-compatible models dict
         all_models = list(dict.fromkeys(raw_models + pipeline_models))
@@ -281,17 +333,14 @@ def run_multi_model_benchmark(
         }
         all_prompt_records.append(prompt_record)
 
+        # Checkpoint: save immediately after each prompt completes
+        json_path.write_text(json.dumps(all_prompt_records, ensure_ascii=False, indent=2), encoding="utf-8")
+        generate_multi_model_report(all_prompt_records, raw_models, pipeline_models, report_path)
+
         if p_idx < total_prompts:
             time.sleep(delay_seconds)
 
-    # 1. Save JSON
-    json_path = out_dir / json_filename
-    json_path.write_text(json.dumps(all_prompt_records, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n[OK] Raw comparison JSON saved to: {json_path}")
-
-    # 2. Generate Markdown Report
-    report_path = out_dir / report_filename
-    generate_multi_model_report(all_prompt_records, raw_models, pipeline_models, report_path)
     print(f"[OK] Markdown Multi-Model Report saved to: {report_path}")
 
     return json_path, report_path
@@ -521,9 +570,12 @@ def main() -> None:
     parser.add_argument("--pipeline-models", default=None, help="Comma-separated list of models for Mode B (Pipeline)")
     parser.add_argument("--json-name", default="benchmark_multi_model.json", help="Custom filename for the output JSON")
     parser.add_argument("--report-name", default="report_multi_model.md", help="Custom filename for the output Markdown report")
+    parser.add_argument("--max-prompts", type=int, default=None, help="Limit number of prompts to evaluate")
     args = parser.parse_args()
 
     prompts = load_target_prompts(Path(args.prompts))
+    if args.max_prompts is not None and args.max_prompts > 0:
+        prompts = prompts[: args.max_prompts]
 
     if args.raw_models or args.pipeline_models:
         raw_models = [m.strip() for m in args.raw_models.split(",") if m.strip()] if args.raw_models else []

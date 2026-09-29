@@ -49,7 +49,9 @@ MODEL_PRICING: dict[str, dict[str, float]] = {
     "deepseek-chat": {"input_per_m": 0.14, "output_per_m": 0.28},
     "llama-3.3-70b": {"input_per_m": 0.12, "output_per_m": 0.30},
     "llama-3.2-3b": {"input_per_m": 0.05, "output_per_m": 0.33},
+    "llama-3.2-1b": {"input_per_m": 0.04, "output_per_m": 0.10},
     "llama-3.1-8b": {"input_per_m": 0.05, "output_per_m": 0.08},
+    "qwen-2.5-3b": {"input_per_m": 0.07, "output_per_m": 0.14},
     "qwen-2.5-7b": {"input_per_m": 0.10, "output_per_m": 0.20},
     "qwen-2.5-72b": {"input_per_m": 0.35, "output_per_m": 0.40},
 }
