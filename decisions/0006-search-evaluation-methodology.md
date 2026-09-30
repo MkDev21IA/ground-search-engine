@@ -45,3 +45,24 @@ Adopted architectural mitigations:
    - **[Mojeek](https://www.mojeek.com/)**: Independent index without search tracking.
    - **[Qwant](https://about.qwant.com/)**: European privacy-focused engine without user profiling.
    - **DuckDuckGo**: Preserved with polite crawl spacing.
+
+## Revision (2026-09-30): Large-Scale Batch Search Rate-Limiting and Open-Source Production Scalability Roadmap
+
+During the full 948-prompt ASQA benchmark execution ([0012](0012-head-to-head-evaluation-and-cost-benchmark.md)), executing hundreds of consecutive automated queries in rapid succession from a single local IP through SearXNG's default free upstream scrapers triggered anti-bot rate limits (HTTP 429 / CAPTCHAs) across Google, Brave, Mojeek, and Qwant after ~350 requests.
+
+### 1. Empirical Finding & Use Case Duality
+
+- **Personal / Sovereign Desktop Use**: Completely unaffected. Natural human conversational query cadence (a few dozen queries per day spaced by minutes) never triggers upstream anti-bot thresholds. Self-hosted SearXNG remains the optimal zero-cost, 100% private search core for personal use.
+- **Large-Scale Batch Evaluation & Multi-Tenant Open-Source Deployments**: Automated benchmarking or multi-user SaaS environments expose the inherent vulnerability of relying solely on unauthenticated HTML scraping from a single IP.
+
+### 2. Open-Source Architectural Roadmap for Production Scalability
+
+To position the engine for robust public open-source adoption, the following architectural improvements are established:
+
+1. **Pluggable Search Backend Adapter Architecture**:
+   - Keep self-hosted SearXNG as the default, zero-configuration local engine.
+   - Introduce an optional direct search API adapter (supporting [Brave Search API](https://brave.com/search/api/) at ~$3–$5 per 1,000 queries, or Tavily) configurable purely via `.env` variables (`SEARCH_BACKEND=searxng|brave`). This enables high-volume benchmark runs and enterprise production deployments with guaranteed SLA and zero IP rate limits.
+2. **SearXNG Outbound Proxy Pool Integration**:
+   - Provide documented configuration templates in `searxng-config/settings.yml` to route upstream queries through rotating residential proxy pools or Tor networks for high-concurrency self-hosted setups.
+3. **Adaptive Backoff & Engine Cycling**:
+   - Enhance `SearxngAdapter` to detect `unresponsive_engines` payloads in real time, automatically cycling active engines or applying exponential backoff before returning graceful zero-result fallbacks.
