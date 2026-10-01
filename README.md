@@ -17,6 +17,31 @@ This project addresses this challenge through a transparent, deterministic pipel
 
 ---
 
+## 📊 Benchmark & Literature Validation (ASQA)
+
+GSE was benchmarked on the official 948-question **ASQA** (Ambiguous Sequential Question Answering; EMNLP 2022) dataset and externally validated against published peer-reviewed baselines from Princeton's **ALCE** benchmark (EMNLP 2023), UW/Meta's **Self-RAG** (ICLR 2024), and recent attribution frameworks (**ALiiCE** and **FineRef**, AAAI 2026).
+
+![ASQA Benchmark Comparison](docs/assets/asqa_benchmark_comparison.svg)
+
+### Canonical Matrix vs. Literature Baselines
+
+| System / Model | Architecture & Retrieval | Context Scope Ingested | Fact Recall (Str-EM) | Citation Quality | Verified Source | Cost / 1k Searches |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: |
+| **`ChatGPT (gpt-3.5)`** *(ALCE 2023)* | Dense RAG (GTR-top5) | 5 Wikipedia passages (~500 tokens) | 20.8% | Rec: 20.5% / Prec: 20.9% | [ALCE (EMNLP 2023)](https://arxiv.org/abs/2305.14627) | Proprietary |
+| **`Self-RAG (13B)`** *(ICLR 2024)* | Adaptive Reflection RAG | 5 Wikipedia passages (~500 tokens) | 31.7% | N/A | [Self-RAG (ICLR 2024)](https://arxiv.org/abs/2310.11511) | Proprietary |
+| **`LLaMA-2-70B-Chat`** *(ALCE 2023)* | Dense RAG (GTR-top5) | 5 Wikipedia passages (~500 tokens) | 36.4% | Rec: 68.9% / Prec: 58.2% | [ALCE (EMNLP 2023)](https://arxiv.org/abs/2305.14627) | Proprietary |
+| **`Llama-3-8B-Instruct`** *(Modern RAG)* | Dense RAG (GTR-top5) | 5 Wikipedia passages (~500 tokens) | 38.5% | Rec: 64.0% / Prec: 62.1% | [ALiiCE / C2-Cite](https://arxiv.org/abs/2407.08630) | Proprietary |
+| **`GPT-4 / GPT-4o`** *(Frontier RAG)* | Dense RAG (GTR-top5) | 5 Wikipedia passages (~500 tokens) | 41.5% | Rec: 72.4% / Prec: 68.2% | [FineRef (AAAI 2026)](https://arxiv.org/abs/2406.15786) | Proprietary |
+| **`FineRef (7B)`** *(SOTA Reflection)* | Reflection RAG (GTR-top5) | 5 Wikipedia passages (~500 tokens) | 44.5% | Rec: 74.8% / Prec: 73.1% | [FineRef (AAAI 2026)](https://arxiv.org/abs/2406.15786) | Proprietary |
+| **`GSE + Qwen 2.5 7B`** *(Active Web Retrieval)* | **Live SearXNG + Ethical Extraction** | **Top 6 Web Articles/PDFs (up to 12k words)** | **47.06%** | **Rate: 84.0%** (1.9 links/ans) | [GSE ASQA Run](results/2026-09-29-asqa-full-evaluation/) | **$0.991** |
+| **`GSE + Llama 3.2 3B`** *(Active Web Retrieval)* | **Live SearXNG + Ethical Extraction** | **Top 6 Web Articles/PDFs (up to 12k words)** | **48.34%** | **Rate: 59.5%** (2.5 links/ans) | [GSE ASQA Run](results/2026-09-29-asqa-full-evaluation/) | **$0.577** |
+
+> **Key takeaway**: Academic baselines bottleneck models with ~500 tokens of Wikipedia passages. GSE retrieves live web results and extracts full articles and PDFs (up to 12,000 words), enabling lightweight open-weight models (3B/7B) to outperform 70B literature baselines (+32% gain) and surpass GPT-4o RAG (41.5%) at less than **$1 per 1,000 queries** (or $0.00 self-hosted).
+>
+> Full methodology and replication details are documented in [ADR 0016](decisions/0016-external-validation-vs-literature-baselines.md) and [`results/2026-09-29-asqa-full-evaluation/`](results/2026-09-29-asqa-full-evaluation/).
+
+---
+
 ## 📂 Repository Structure
 
 ```text

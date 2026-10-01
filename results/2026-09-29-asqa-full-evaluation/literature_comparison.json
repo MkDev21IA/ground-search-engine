@@ -1,0 +1,171 @@
+{
+  "metadata": {
+    "dataset": "ASQA (Ambiguous Sequential Question Answering)",
+    "benchmark_suite": "ALCE (Princeton) & GSE Evaluation",
+    "generated_at": "2026-10-01T13:39:50.464734"
+  },
+  "literature_baselines": [
+    {
+      "system": "ChatGPT (gpt-3.5-turbo-0301)",
+      "organization": "OpenAI / Princeton (ALCE)",
+      "paper": "ALCE (Gao et al., EMNLP 2023)",
+      "source_url": "https://arxiv.org/abs/2305.14627",
+      "retrieval": "Dense RAG (GTR-top5 Wikipedia)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 20.8,
+      "citation_recall": 20.5,
+      "citation_precision": 20.9,
+      "tier": "Historical Baseline (ALCE 2023)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "Self-RAG (7B)",
+      "organization": "Univ. of Washington / Allen AI / Meta",
+      "paper": "Self-RAG (Asai et al., ICLR 2024)",
+      "source_url": "https://arxiv.org/abs/2310.11511",
+      "retrieval": "Adaptive Reflection Retrieval (GTR-top5)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 30.0,
+      "citation_recall": null,
+      "citation_precision": null,
+      "tier": "Academic Reflection SOTA (ICLR 2024)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "Self-RAG (13B)",
+      "organization": "Univ. of Washington / Allen AI / Meta",
+      "paper": "Self-RAG (Asai et al., ICLR 2024)",
+      "source_url": "https://arxiv.org/abs/2310.11511",
+      "retrieval": "Adaptive Reflection Retrieval (GTR-top5)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 31.7,
+      "citation_recall": null,
+      "citation_precision": null,
+      "tier": "Academic Reflection SOTA (ICLR 2024)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "LLaMA-2-7B-Chat",
+      "organization": "Meta / Princeton (ALCE)",
+      "paper": "ALCE (Gao et al., EMNLP 2023)",
+      "source_url": "https://arxiv.org/abs/2305.14627",
+      "retrieval": "Dense RAG (GTR-top5 Wikipedia)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 33.9,
+      "citation_recall": 50.9,
+      "citation_precision": 47.5,
+      "tier": "Historical Baseline (ALCE 2023)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "LLaMA-2-70B-Chat",
+      "organization": "Meta / Princeton (ALCE)",
+      "paper": "ALCE (Gao et al., EMNLP 2023)",
+      "source_url": "https://arxiv.org/abs/2305.14627",
+      "retrieval": "Dense RAG (GTR-top5 Wikipedia)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 36.4,
+      "citation_recall": 68.9,
+      "citation_precision": 58.2,
+      "tier": "Historical Baseline (ALCE 2023)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "Llama-3-8B-Instruct",
+      "organization": "Meta / ALiiCE / C2-Cite",
+      "paper": "ALiiCE (2024) / C2-Cite (2026)",
+      "source_url": "https://arxiv.org/abs/2407.08630",
+      "retrieval": "Dense RAG (GTR-top5 Wikipedia)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 38.5,
+      "citation_recall": 64.0,
+      "citation_precision": 62.1,
+      "tier": "Modern Open RAG Baseline (2024)",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "GPT-4 / GPT-4o (ALCE RAG)",
+      "organization": "OpenAI / Princeton / AAAI",
+      "paper": "ALCE (2023) / FineRef (AAAI 2026)",
+      "source_url": "https://arxiv.org/abs/2406.15786",
+      "retrieval": "Dense RAG (GTR-top5 Wikipedia)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 41.5,
+      "citation_recall": 72.4,
+      "citation_precision": 68.2,
+      "tier": "Frontier Commercial RAG Baseline",
+      "type": "Literature Baseline"
+    },
+    {
+      "system": "FineRef (7B)",
+      "organization": "AAAI 2026 (Fine-Grained Reflection)",
+      "paper": "FineRef (AAAI 2026)",
+      "source_url": "https://arxiv.org/abs/2406.15786",
+      "retrieval": "Reflection RAG (GTR-top5)",
+      "context_scope": "5 Wikipedia passages (~500 tokens)",
+      "str_em": 44.5,
+      "citation_recall": 74.8,
+      "citation_precision": 73.1,
+      "tier": "SOTA Citation Reflection (AAAI 2026)",
+      "type": "Literature Baseline"
+    }
+  ],
+  "ground_search_engine": [
+    {
+      "system": "GSE + Llama 3.2 3B (Live Web Search)",
+      "organization": "Ground Search Engine (Open-Source)",
+      "paper": "This Work (GSE Live Pipeline)",
+      "retrieval": "SearXNG Live Web + Trafilatura/PyPDF Extractor",
+      "context_scope": "Top 6 live articles/PDFs (up to 12,000 words)",
+      "str_em": 48.34,
+      "citation_rate": 59.54,
+      "avg_citations": 2.45,
+      "qa_f1": 32.47,
+      "rouge_l": 24.31,
+      "cost_1k": 0.5770000000000001,
+      "type": "GSE Live Web (Clean Subset)"
+    },
+    {
+      "system": "GSE + Qwen 2.5 7B (Live Web Search)",
+      "organization": "Ground Search Engine (Open-Source)",
+      "paper": "This Work (GSE Live Pipeline)",
+      "retrieval": "SearXNG Live Web + Trafilatura/PyPDF Extractor",
+      "context_scope": "Top 6 live articles/PDFs (up to 12,000 words)",
+      "str_em": 47.06,
+      "citation_rate": 84.01,
+      "avg_citations": 1.93,
+      "qa_f1": 38.72,
+      "rouge_l": 27.21,
+      "cost_1k": 0.9909999999999999,
+      "type": "GSE Live Web (Clean Subset)"
+    },
+    {
+      "system": "GSE + Llama 3.2 3B (Full 948 Batch)",
+      "organization": "Ground Search Engine (Open-Source)",
+      "paper": "This Work (Full 948 Dataset)",
+      "retrieval": "SearXNG Live Web (with rate-limited fallbacks)",
+      "context_scope": "Live Web + Graceful Fallbacks",
+      "str_em": 32.35,
+      "citation_rate": 55.24,
+      "avg_citations": 1.67,
+      "qa_f1": 30.43,
+      "rouge_l": 22.14,
+      "cost_1k": 0.28800000000000003,
+      "type": "GSE Full Dataset (948 Prompts)"
+    },
+    {
+      "system": "GSE + Qwen 2.5 7B (Full 948 Batch)",
+      "organization": "Ground Search Engine (Open-Source)",
+      "paper": "This Work (Full 948 Dataset)",
+      "retrieval": "SearXNG Live Web (with rate-limited fallbacks)",
+      "context_scope": "Live Web + Graceful Fallbacks",
+      "str_em": 28.71,
+      "citation_rate": 90.02,
+      "avg_citations": 1.41,
+      "qa_f1": 36.39,
+      "rouge_l": 25.71,
+      "cost_1k": 0.376,
+      "type": "GSE Full Dataset (948 Prompts)"
+    }
+  ]
+}

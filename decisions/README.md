@@ -29,3 +29,5 @@ Use `template.md` as the baseline for new decisions.
 | [0013](0013-differentiation-vs-google-ai-overviews-and-search-grounding.md) | Architectural Differentiation vs. Google AI Overviews and Search Grounding | Accepted |
 | [0014](0014-backend-service-architecture-and-telemetry.md) | Backend Service Architecture, Streaming API, and Real-Time Telemetry | Accepted |
 | [0015](0015-showcase-web-interface-and-citation-ux.md) | Showcase Web Interface Architecture and Verified Citation UX | Accepted |
+| [0016](0016-external-validation-vs-literature-baselines.md) | External Benchmark Validation vs. Published Literature Baselines (ALCE & Self-RAG) | Accepted |
+
