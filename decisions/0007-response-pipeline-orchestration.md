@@ -1,7 +1,7 @@
 # 0007 — Response Pipeline Orchestration: LangGraph and Multi-Language Search
 
-**Status:** Proposed (framework adoption postponed; simple async pipeline prioritized)
-**Date:** 2026-09-01
+**Status:** Accepted (lightweight native asyncio pipeline adopted; heavy graph frameworks deferred)  
+**Date:** 2026-09-01  
 
 ## Context
 
@@ -33,3 +33,11 @@ The pipeline supports parallel multi-language retrieval:
 
 - Keep orchestration lightweight, relying on simple `asyncio` and `httpx`.
 - Avoid premature framework abstractions before measuring pipeline bottlenecks.
+
+## Revision (2026-10-02): Linear Async Pipeline Validated Across Production & Benchmarks
+
+The decision to avoid heavy graph frameworks (LangGraph) was conclusively validated:
+1. **Execution Simplicity & Zero-Build**: Native `asyncio` with `httpx` allowed seamless integration with FastAPI streaming SSE endpoints ([0014](0014-backend-service-architecture-and-telemetry.md)) and the lightweight web interface ([0015](0015-showcase-web-interface-and-citation-ux.md)).
+2. **Deterministic Latency**: By avoiding unconstrained agent loops, pipeline latency remained predictable (15s–25s total including network search, HTML extraction, and token synthesis).
+3. **Reproducible Benchmarking**: The linear async architecture executed 948 benchmark questions deterministically with complete telemetry and cost tracking ([0016](0016-external-validation-vs-literature-baselines.md)).
+

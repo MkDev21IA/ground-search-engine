@@ -1,7 +1,7 @@
 # 0008 — Future Evaluation with Promptfoo
 
-**Status:** Proposed (recorded as an option to revisit)
-**Date:** 2026-09-01
+**Status:** Superseded / Closed (native evaluation harness adopted)  
+**Date:** 2026-09-01  
 
 ## Context
 
@@ -27,3 +27,13 @@ Promptfoo was acquired by OpenAI in early 2026. The core CLI remains MIT/open-so
 ## Consequences
 
 - If adopted, configure using local/self-hosted providers to preserve privacy ([0004](0004-conversation-privacy-and-security.md)).
+
+## Revision (2026-10-02): Native Evaluation Harness Adopted in Place of Promptfoo
+
+Promptfoo was not adopted. Instead, the project built its own native, zero-dependency evaluation harness in Python:
+1. `search-proxy/scripts/run_head_to_head_eval.py`: Automated multi-model comparative execution across Mode A and Mode B ([0012](0012-head-to-head-evaluation-and-cost-benchmark.md)).
+2. `search-proxy/scripts/evaluate_asqa_results.py`: Native evaluation of official academic metrics (Str-EM, QA-F1, ROUGE-L) and citation rates.
+3. `search-proxy/scripts/compare_with_literature.py`: Direct cross-referencing and publication-ready SVG generation ([0016](0016-external-validation-vs-literature-baselines.md)).
+
+This approach avoided external Node.js/CLI dependencies while providing exact compatibility with academic literature benchmarks.
+

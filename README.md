@@ -38,7 +38,7 @@ GSE was benchmarked on the official 948-question **ASQA** (Ambiguous Sequential 
 
 > **Key takeaway**: Academic baselines bottleneck models with ~500 tokens of Wikipedia passages. GSE retrieves live web results and extracts full articles and PDFs (up to 12,000 words), enabling lightweight open-weight models (3B/7B) to outperform 70B literature baselines (+32% gain) and surpass GPT-4o RAG (41.5%) at less than **$1 per 1,000 queries** (or $0.00 self-hosted).
 >
-> Full methodology and replication details are documented in [ADR 0016](decisions/0016-external-validation-vs-literature-baselines.md) and [`results/2026-09-29-asqa-full-evaluation/`](results/2026-09-29-asqa-full-evaluation/).
+> Full methodology, replication details, and complete multi-phase evaluation findings are documented in [ADR 0016](decisions/0016-external-validation-vs-literature-baselines.md) and the master [Consolidated Benchmark Report](results/CONSOLIDATED_BENCHMARK_REPORT.md).
 
 ---
 

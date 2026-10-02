@@ -1,7 +1,7 @@
 # 0004 — Conversation Privacy and Security
 
-**Status:** Accepted (direction); implementation open
-**Date:** 2026-08-27
+**Status:** Accepted  
+**Date:** 2026-08-27  
 
 ## Context
 
@@ -32,3 +32,11 @@ When inference runs locally, prompt leakage to third-party model providers is el
 - This sets an architectural **direction**: implementation details for encryption at rest and session management remain open for future ADRs.
 - Search queries routed through external search engines must be scrubbed of tracking cookies and identifying user headers.
 - Reinforces [0002](0002-neutrality-and-factual-moderation.md) and [0003](0003-llm-model-architecture.md) in prioritizing local, sovereign execution.
+
+## Revision (2026-10-02): Ephemeral In-Memory Execution and Client-Side BYOK
+
+The open implementation details for privacy were formally realized across [0014](0014-backend-service-architecture-and-telemetry.md) and [0015](0015-showcase-web-interface-and-citation-ux.md):
+1. **Zero Database / Zero Disk Persistence**: The backend FastAPI engine operates 100% in-memory for live search sessions. Query terms, retrieved documents, and synthesized tokens are never logged or stored to disk.
+2. **Client-Side Bring Your Own Key (BYOK)**: User API credentials and model endpoints are stored exclusively in browser `localStorage`. Credentials are sent via transient HTTP headers per request and are never written to server configuration files or logs.
+3. **Local Meta-Search Anonymity**: SearXNG runs via local Docker container (`http://localhost:8080`), acting as an anonymizing proxy that strips client IP addresses, cookies, and user-agent trackers before querying public search backends.
+

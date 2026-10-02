@@ -1,7 +1,7 @@
 # 0005 — Source Verification and Citation
 
-**Status:** Accepted (direction); implementation open
-**Date:** 2026-08-27
+**Status:** Accepted  
+**Date:** 2026-08-27  
 
 ## Context
 
@@ -22,3 +22,12 @@ Source citation is treated as a deterministic engineering pipeline with distinct
 - Search, content extraction, and claim verification are core architectural pillars of equal importance to model inference.
 - Downstream verification (evaluating claim entailment via RAGAS/NLI) is specified in [0010](0010-citation-verification-ragas-nli.md).
 - Search query routing and privacy protections are addressed via local proxying in [0006](0006-search-evaluation-methodology.md).
+
+## Revision (2026-10-02): Realization via Trafilatura, Regex Citation Extraction, and ASQA Benchmarking
+
+The citation verification pipeline was fully implemented and benchmarked across [0009](0009-source-content-extraction.md), [0011](0011-pipeline-validation-with-commercial-model.md), [0014](0014-backend-service-architecture-and-telemetry.md), [0015](0015-showcase-web-interface-and-citation-ux.md), and [0016](0016-external-validation-vs-literature-baselines.md):
+1. **Pre-Synthesis Verification**: `trafilatura` and `pypdf` fetch documents with strict HTTP 200 checks, extracting clean text while pruning navigation boilerplate and ads.
+2. **Synthesis Grounding**: Universal system prompts enforce inline markdown links `[Source Title](URL)` with zero ungrounded extrapolation and mandatory refusal when context is missing.
+3. **Post-Synthesis Deterministic Parsing**: Regex-based citation extractor (`extract_citations`) matches model links against the ingested source registry, measuring exact link counts and detecting hallucinated URLs.
+4. **Empirical Literature Validation**: In the 948-question ASQA benchmark ([0016](0016-external-validation-vs-literature-baselines.md)), GSE achieved up to 84.0% citation rates with 0% URL hallucinations, significantly outperforming academic baselines.
+

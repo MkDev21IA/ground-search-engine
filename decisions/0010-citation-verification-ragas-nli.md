@@ -1,7 +1,7 @@
 # 0010 — Citation Verification: RAGAS First, NLI On-Demand
 
-**Status:** Accepted (prototype direction)
-**Date:** 2026-09-03
+**Status:** Accepted (deterministic substring verification and empirical literature evaluation adopted)  
+**Date:** 2026-09-03  
 
 ## Context
 
@@ -32,3 +32,11 @@ Literature benchmarks demonstrate that LLM-as-judge approaches (decomposing answ
 
 - Follows the core engineering principle: measure before adding extra model pipelines.
 - Implementation of automated evaluation suite is deferred until after core response pipeline integration.
+
+## Revision (2026-10-02): Standardized on ASQA Ground Truth Verification & Empirical Metrics
+
+In alignment with [0016](0016-external-validation-vs-literature-baselines.md), the evaluation harness standardized on reproducible academic metrics instead of opaque synthetic judges:
+1. **Deterministic Correctness (Str-EM & QA-F1)**: Directly evaluates string exact match against disambiguated gold answers on the official ASQA benchmark.
+2. **Citation Verification Pipeline**: Deterministic regex extraction checks whether every inline citation resolves to an ingested source URL, measuring citation coverage without introducing judge hallucination.
+3. **Future Extension**: GaRAGe (ACL 2025) and FACTS Grounding remain open as future second-phase candidates for measuring deflection and noise filtering without heavy NLI overhead.
+
